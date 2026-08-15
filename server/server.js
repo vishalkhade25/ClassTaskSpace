@@ -5,6 +5,7 @@ import dns from "dns";
 import connectDB from "./config/db.js";
 import authRouter from "./routes/authRoutes.js";
 import classRouter from "./routes/classRoutes.js";
+import assignmentRouter from "./routes/assignmentRoutes.js";
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(express.json())
 await connectDB();
 app.use("/api/auth",authRouter);
 app.use("/api/class",classRouter);
+app.use("/api/assignment", assignmentRouter);
 
 const port = process.env.PORT || 4000;
 
