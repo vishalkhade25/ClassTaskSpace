@@ -33,4 +33,57 @@ const createAssignment = async (req, res) => {
     }
 };
 
-export { createAssignment };
+const getAssignments = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const classData = await classModel.findById(classId);
+        if(!classData){
+            return res.status(404).json({success:false, message: "No class found"})
+        }
+        if (req.user.role === "teacher") {
+            if (classData.teacher.toString() !== req.user.userId) {
+                return res.status(403).json({ success: false, message: "You do not own this class" });
+            }
+        } else if (req.user.role === "student") {
+            if (!classData.students.includes(req.user.userId)) {
+                return res.status(403).json({ success: false, message: "You are not enrolled in this class" });
+            }
+        }
+        const assignments = await assignmentModel.find({class : classId});
+        if(assignments.length === 0){
+            return res.status(200).json({success: true, message: "Currently there is no assignment in this class"});
+        }
+        return res.status(200).json({success: true, message: "Assignment fetched successfully", assignments});
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ message: "Server Error", error: error.message });
+    }
+}
+
+const getAssignmentById = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+        const assignment = await assignmentModel.findById(assignmentId);
+        if(!assignment){
+            return res.status(404).json({ success: false, message: "Assignment not found" });
+        }
+        if (req.user.role === "teacher") {
+            if (assignment.teacher.toString() !== req.user.userId) {
+                return res.status(403).json({ success: false, message: "You do not own this class" });
+            }
+        }else if (req.user.role === "student") {
+            const classData = await classModel.findById(assignment.class);
+            if (!classData || !classData.students.includes(req.user.userId)) {
+                return res.status(403).json({ success: false, message: "You are not enrolled in this class" });
+            }
+        }
+        return res.status(200).json({ success: true, message:"Details fetched successfully", assignment });
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ message: "Server Error", error: error.message });
+    }
+}
+
+export { createAssignment, getAssignments, getAssignmentById };
