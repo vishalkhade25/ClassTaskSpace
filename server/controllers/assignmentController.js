@@ -21,9 +21,9 @@ const createAssignment = async (req, res) => {
             description,
             pdfUrl,
             class : classId,
-            deadline
+            deadline,
+            teacher : req.user.userId
         })
-
         await assignment.save();
         return res.status(201).json({ success: true, message: "Assignment Uploaded successfully" });
     } catch (error) {

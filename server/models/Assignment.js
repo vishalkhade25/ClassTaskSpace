@@ -20,6 +20,11 @@ const assignmentSchema = new mongoose.Schema({
     deadline : {
         type : Date,
         required : true
+    },
+    teacher : {
+        type : mongoose.Schema.Types.ObjectId,
+        ref : "User",
+        required : true
     }
 },{
     timestamps : true
