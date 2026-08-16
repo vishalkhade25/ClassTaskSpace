@@ -1,6 +1,6 @@
 import assignmentModel from "../models/Assignment.js";
 import classModel from "../models/Class.js";
-import { createBulkNotification } from "./notificationController.js";
+import sendEmail from "../config/mailer.js";
 
 const createAssignment = async (req, res) => {
     try {
@@ -10,7 +10,7 @@ const createAssignment = async (req, res) => {
         if(!title || !deadline || !req.file ){
             return res.status(400).json({success : false, message : "Please enter all fields"});
         };
-        const classData = await classModel.findById(classId);
+        const classData = await classModel.findById(classId).populate("students", "name email");
         if(!classData){
             return res.status(404).json({ success: false, message: "Class not found" });
         }
@@ -26,7 +26,9 @@ const createAssignment = async (req, res) => {
             teacher : req.user.userId
         })
         await assignment.save();
-        await createBulkNotification(classData.students, "new_assignment", `New Assignment: ${title}`, assignment._id);
+        await Promise.all(
+            classData.students.map((student)=> sendEmail(`${student.email}`, `New Assignment Posted : ${title}`, `Hi ${student.name},\n\nA new assignment has been posted in your class.\n\nAssignment: ${title}\nDescription: ${description}\nDeadline: ${deadline}\n\nPlease log in to submit your work before the deadline.\n\nRegards,\n${classData.name} — Homework Portal`))
+        )
         return res.status(201).json({ success: true, message: "Assignment Uploaded successfully" });
     } catch (error) {
         return res

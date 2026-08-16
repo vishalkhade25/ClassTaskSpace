@@ -2,7 +2,7 @@ import submissionModel from "../models/Submission.js";
 import assignmentModel from "../models/Assignment.js";
 import classModel from "../models/Class.js";
 import { Parser } from "json2csv";
-import { createNotification } from "./notificationController.js";
+import sendEmail from "../config/mailer.js";
 
 const submitAssignment = async (req, res) => {
     try {
@@ -11,12 +11,13 @@ const submitAssignment = async (req, res) => {
             return res.status(400).json({ success: false, message: "Please attach a PDF" });
         }
         const pdfUrl = req.file.path;
-        const assignmentData = await assignmentModel.findById(assignmentId);
+        const assignmentData = await assignmentModel.findById(assignmentId).populate("teacher", "name email");
         if(!assignmentData){
             return res.status(404).json({ success: false, message : "No assignment foud" });
         }
-        const classData = await classModel.findById(assignmentData.class);
-        if(!classData.students.includes(req.user.userId)){
+        const classData = await classModel.findById(assignmentData.class).populate("students", "name email");
+        const isEnrolled = classData.students.some((student) => student._id.toString() === req.user.userId);
+        if (!isEnrolled) {
             return res.status(403).json({ success: false, message: "You are not enrolled in this class" });
         }
         const isLate = new Date() > assignmentData.deadline ? true : false;
@@ -25,7 +26,7 @@ const submitAssignment = async (req, res) => {
             { pdfUrl, submittedAt: new Date(), isLate },
             { upsert: true, new: true }
         );
-        await createNotification(assignmentData.teacher, "submission_received", `submission received from ${req.user.name}`, assignmentId);
+        await sendEmail(`${assignmentData.teacher.email}`,`New Submission: ${req.user.name} — ${assignmentData.title}`, `Hi ${assignmentData.teacher.name},\n\n${req.user.name} has submitted their work for the assignment "${assignmentData.title}".\n\nSubmitted at: ${new Date().toLocaleString()}\nStatus: ${isLate ? "Late" : "On time"}\n\nYou can review the submission by logging into the portal.\n\nRegards,\nHomework Portal`)
         return res.status(201).json({ success: true, message : "Assignment submitted successfully" });
     } catch (error) {
         return res
@@ -70,7 +71,7 @@ const gradeSubmission = async (req, res) => {
         if(marks === undefined || marks === null){
             return res.status(400).json({ success:false, message:"Please enter the marks" });
         }
-        const submissionData = await submissionModel.findById(submissionId);
+        const submissionData = await submissionModel.findById(submissionId).populate("student","name email");
         if(!submissionData){
             return res.status(404).json({ success: false, message: "Submission not found" });
         }
@@ -83,7 +84,7 @@ const gradeSubmission = async (req, res) => {
             return res.status(403).json({ success: false, message: "You are not allowed to grade this submission" });
         }
         await submissionModel.findByIdAndUpdate(submissionId, { marks, gradedAt : new Date() });
-        await createNotification(submissionData.student, "marks_assigned", `Got ${marks} in ${assignmentData.title}`, submissionData.assignment);
+        await sendEmail(`${submissionData.student.email}`, `Graded Submission: ${assignmentData.title}`, `Hi ${submissionData.student.name},\n\nYour submission for the assignment "${assignmentData.title}" has been graded.\n\nMarks: ${marks}\nGraded at: ${new Date().toLocaleString()}\n\nPlease log in to view your grade and feedback.\n\nRegards,\nHomework Portal`)
         return res.status(200).json({ success: true, message: "Submission graded successfully" });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Server Error", error: error.message });
