@@ -1,5 +1,6 @@
 import assignmentModel from "../models/Assignment.js";
 import classModel from "../models/Class.js";
+import { createBulkNotification } from "./notificationController.js";
 
 const createAssignment = async (req, res) => {
     try {
@@ -25,6 +26,7 @@ const createAssignment = async (req, res) => {
             teacher : req.user.userId
         })
         await assignment.save();
+        await createBulkNotification(classData.students, "new_assignment", `New Assignment: ${title}`, assignment._id);
         return res.status(201).json({ success: true, message: "Assignment Uploaded successfully" });
     } catch (error) {
         return res

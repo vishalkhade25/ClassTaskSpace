@@ -2,6 +2,7 @@ import submissionModel from "../models/Submission.js";
 import assignmentModel from "../models/Assignment.js";
 import classModel from "../models/Class.js";
 import { Parser } from "json2csv";
+import { createNotification } from "./notificationController.js";
 
 const submitAssignment = async (req, res) => {
     try {
@@ -24,6 +25,7 @@ const submitAssignment = async (req, res) => {
             { pdfUrl, submittedAt: new Date(), isLate },
             { upsert: true, new: true }
         );
+        await createNotification(assignmentData.teacher, "submission_received", `submission received from ${req.user.name}`, assignmentId);
         return res.status(201).json({ success: true, message : "Assignment submitted successfully" });
     } catch (error) {
         return res
@@ -40,7 +42,7 @@ const getSubmissions = async (req, res) => {
             return res.status(404).json({ success: false, message : "No assignment foud" });
         }
         const isTeacher = assignmentData.teacher.toString() === req.user.userId ? true : false;
-        if(isTeacher){
+        if(!isTeacher){
             return res.status(403).json({ success: false, message: "You are not allowed to see submission details of this assg" })
         }
         const submissions = await submissionModel.find({assignment : assignmentId}).populate("student","name email");
@@ -81,6 +83,7 @@ const gradeSubmission = async (req, res) => {
             return res.status(403).json({ success: false, message: "You are not allowed to grade this submission" });
         }
         await submissionModel.findByIdAndUpdate(submissionId, { marks, gradedAt : new Date() });
+        await createNotification(submissionData.student, "marks_assigned", `Got ${marks} in ${assignmentData.title}`, submissionData.assignment);
         return res.status(200).json({ success: true, message: "Submission graded successfully" });
     } catch (error) {
         return res.status(500).json({ success: false, message: "Server Error", error: error.message });

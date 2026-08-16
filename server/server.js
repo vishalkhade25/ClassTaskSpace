@@ -7,6 +7,7 @@ import authRouter from "./routes/authRoutes.js";
 import classRouter from "./routes/classRoutes.js";
 import assignmentRouter from "./routes/assignmentRoutes.js";
 import submissionRouter from "./routes/submissionRoutes.js";
+import notificationRouter from "./routes/notificationRoutes.js";
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ app.use("/api/auth",authRouter);
 app.use("/api/class",classRouter);
 app.use("/api/assignment", assignmentRouter);
 app.use("/api/submission", submissionRouter);
+app.use("/api/notification", notificationRouter);
 
 const port = process.env.PORT || 4000;
 
