@@ -25,10 +25,20 @@ const assignmentSchema = new mongoose.Schema({
         type : mongoose.Schema.Types.ObjectId,
         ref : "User",
         required : true
+    },
+    warningEmailSent : {
+        type : Boolean,
+        default : false
+    },
+    deadlinePassedEmailSent : {
+        type : Boolean,
+        default : false
     }
 },{
     timestamps : true
 });
+
+assignmentSchema.index({ deadline: 1, warningEmailSent: 1 });
 
 const assignmentModel = mongoose.model('Assignment',assignmentSchema);
 
