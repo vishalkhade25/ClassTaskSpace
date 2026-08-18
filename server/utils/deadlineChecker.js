@@ -10,7 +10,7 @@ const sendDeadlineWarnings = async () => {
     const upcomingAssignment = await assignmentModel.find({
         deadline : {$gte : now, $lte : threeHoursLater},
         warningEmailSent : false
-    });
+    }).populate("teacher", "name email");
 
     for ( const assignment of upcomingAssignment){
         try {
@@ -42,7 +42,7 @@ const sendDeadlinePassedWarnings = async () => {
     const pastAssignments = await assignmentModel.find({
         deadline : {$lt : now},
         deadlinePassedEmailSent : false
-    });
+    }).populate("teacher", "name email");
 
     for ( const assignment of pastAssignments){
         try {
@@ -60,6 +60,7 @@ const sendDeadlinePassedWarnings = async () => {
                     )
                 })
             );
+            await sendEmail(assignment.teacher.email, `Deadline Passed: ${assignment.title}`, `Hi ${assignment.teacher.name},\n\nThe deadline for "${assignment.title}" has passed.\n\nDeadline: ${assignment.deadline.toLocaleString()}\n\nYou can now log in to review the full list of submitted and not-submitted students, or export it as a CSV.\n\nRegards,\nHomework Portal` )
             assignment.deadlinePassedEmailSent = true;
             await assignment.save();
         }catch (error) {

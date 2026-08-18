@@ -3,22 +3,39 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
     name : {
         type : String,
-        required : true
+        required : true,
+        trim : true
     },
     email : {
         type : String,
         required : true,
         unique : true,
-        lowercase : true
+        lowercase : true,
+        trim : true
     },
     password : {
         type : String,
-        required : true
+        required : function (){
+            return this.authProvider === 'local';
+        }
     },
     role : {
         type : String,
         enum : ['teacher', 'student'],
         required : true
+    },
+    authProvider : {
+        type : String,
+        enum : ["google","local"],
+        default : "local"
+    },
+    googleId : {
+        type : String,
+        sparse : true
+    },
+    isEmailVerified : {
+        type : Boolean,
+        default : false
     }
 },{
     timestamps : true
