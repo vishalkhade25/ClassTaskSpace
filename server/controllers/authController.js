@@ -3,6 +3,10 @@ import EmailVerificationModel from "../models/EmailVerification.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import sendEmail from "../config/mailer.js";
+import dotenv from "dotenv"
+import { OAuth2Client } from "google-auth-library";
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const register = async (req, res) =>{
     try {
@@ -139,7 +143,7 @@ const verifyEmail = async (req, res) => {
 
         return res.status(200).json({
             success: true,
-            message: "Email verified successfully. You can now login."
+            message: "Email verified successfully. You can now login.",
         });
 
     } catch (error) {
@@ -243,10 +247,81 @@ const login = async (req, res) =>{
             email : user.email,
             role : user.role
         },process.env.JWT_SECRET, { expiresIn : "7d"});
-        return res.status(200).json({ success: true, message: "Login Successful", token });
+        return res.status(200).json({ success: true, message: "Login Successful", token, role : user.role });
     } catch (error) {
         return res.status(500).json({ message: "Server Error", error: error.message })
     }
 };
 
-export { register, verifyEmail, resendOtp, login };
+const googleLogin = async (req,res) => {
+    try {
+        const { idToken } = req.body;
+        if(!idToken){
+            return res.status(400).json({ success: false, message: "ID token missing" });
+        }
+
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience : process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const { email, name, sub: GoogleId } = payload;
+
+        const existingUser = await userModel.findOne({email});
+        if(existingUser){
+            const token = jwt.sign({
+                userId : existingUser._id,
+                name : existingUser.name,
+                email : existingUser.email,
+                role : existingUser.role
+            }, process.env.JWT_SECRET, { expiresIn : "7d"})
+            return res.status(200).json({ success: true, message: "Login successful", token, needsRole: false });
+        }
+        const tempToken = jwt.sign(
+            { email, name, GoogleId },
+            process.env.JWT_SECRET,
+            { expiresIn: "10m" }
+        );
+        return res.status(200).json({ success: true, needsRole: true, tempToken });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+}
+
+const completeGoogleSignUp = async (req, res) => {
+    try {
+        const { tempToken, role } = req.body;
+        if (!tempToken || !role) {
+            return res.status(400).json({ success: false, message: "Missing tempToken or role" });
+        }
+        const decoded = jwt.verify(tempToken, process.env.JWT_SECRET);
+        const { email, name, GoogleId } = decoded;
+        const existingUser = await userModel.findOne({email});
+        if (existingUser) {
+            return res.status(400).json({ success: false, message: "User already exists" });
+        }
+        const user = new userModel({
+            name,
+            email,
+            googleId: GoogleId,
+            authProvider : "google",
+            isEmailVerified : true,
+            role
+        });
+
+        await user.save();
+
+        const token = jwt.sign(
+            { userId: user._id, name: user.name, email: user.email, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+
+        return res.status(201).json({ success: true, message: "Account created", token });
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+}
+
+export { register, verifyEmail, resendOtp, login, googleLogin, completeGoogleSignUp };

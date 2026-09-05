@@ -52,4 +52,32 @@ const joinClass = async (req, res) => {
     }
 };
 
-export { createClass, joinClass };
+const getMyClassesAsTeacher = async (req, res) => {
+    try {
+        const classes = await classModel.find({teacher : req.user.userId});
+        if(classes.length === 0){
+            return res.status(200).json({success:true, message : "You have not created any class yet", classes});
+        }
+        return res.status(200).json({success:true, message:"Classes fetched succcessfully", classes});
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ message: "Server Error", error: error.message });
+    }
+}
+
+const getMyClassesAsStudent = async (req, res) => {
+    try {
+        const classes = await classModel.find({students : req.user.userId});
+        if(classes.length === 0){
+            return res.status(200).json({success: true, message: "You have not joined any class yet", classes});
+        }
+        return res.status(200).json({success:true, message:"Classes fetched successfully",classes});
+    } catch (error) {
+        return res
+            .status(500)
+            .json({ message: "Server Error", error: error.message });
+    }
+}
+
+export { createClass, joinClass, getMyClassesAsTeacher, getMyClassesAsStudent };

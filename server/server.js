@@ -27,7 +27,7 @@ app.use("/api/assignment", assignmentRouter);
 app.use("/api/submission", submissionRouter);
 // assignmentDeadlineCron();
 
-const port = process.env.PORT || 4000;
+const port = process.env.PORT || 5000;
 
 app.listen(port, ()=>{
     console.log(`Server running on Port : ${port}`);

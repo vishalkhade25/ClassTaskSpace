@@ -12,13 +12,18 @@ import CreateAssignment from "./pages/teacher/CreateAssignment";
 import CreateClass from "./pages/teacher/CreateClass";
 import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CompleteProfile from "./pages/common/CompleteProfile";
+import Navbar from "./components/Navbar";
 function App() {
 
   return (
+    <>
+    <Navbar/>
     <Routes>
       <Route path="/login" element={<Login/>}/>
       <Route path="/register" element={<Register/>}/>
       <Route path="/verify-otp" element={<VerifyOtp/>}/>
+      <Route path="/complete-profile" element={<CompleteProfile />} />
       <Route path="/teacher/dashboard" element={<ProtectedRoute><TeacherDashboard/></ProtectedRoute>}/>
       <Route path="/teacher/class/create" element={<ProtectedRoute><CreateClass/></ProtectedRoute>}/>
       <Route path="/teacher/class/:classId" element={<ProtectedRoute><ClassDetailTeacher/></ProtectedRoute>}/>
@@ -29,6 +34,7 @@ function App() {
       <Route path="/student/class/:classId" element={<ProtectedRoute><ClassDetailStudent/></ProtectedRoute>}/>
       <Route path="/student/assignment/:assignmentId" element={<ProtectedRoute><AssignmentDetailStudent/></ProtectedRoute>}/>
     </Routes>
+    </>
   )
 }
 
