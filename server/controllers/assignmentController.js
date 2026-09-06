@@ -55,7 +55,7 @@ const getAssignments = async (req, res) => {
         }
         const assignments = await assignmentModel.find({class : classId});
         if(assignments.length === 0){
-            return res.status(200).json({success: true, message: "Currently there is no assignment in this class"});
+            return res.status(200).json({success: true, message: "Currently there is no assignment in this class", assignments});
         }
         return res.status(200).json({success: true, message: "Assignment fetched successfully", assignments});
     } catch (error) {

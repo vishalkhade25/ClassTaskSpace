@@ -21,7 +21,8 @@ const StudentDashboard = () => {
         setEmpty(true);
       }
     } catch (error) {
-      setError(error.response?.data?.message || "Something went wrong");
+      const errorMessage = error.response?.data?.message || "Something Went Wrong";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

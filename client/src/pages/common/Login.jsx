@@ -62,7 +62,8 @@ const Login = () => {
         navigate(decoded.role === "teacher" ? "/teacher/dashboard" : "/student/dashboard");
       }
     } catch (error) {
-      setError(error.response?.data?.message || "Google login failed");
+      const errorMessage = error.response?.data?.message ||"Google login failed";
+      setError(errorMessage);
     }finally {
       setLoading(false);
     }

@@ -34,7 +34,8 @@ const CompleteProfile = () => {
             const decoded = jwtDecode(response.data.token);
             navigate(decoded.role === "teacher" ? "/teacher/dashboard" : "/student/dashboard");
         } catch (error) {
-            setError(error.response?.data?.message || "Something went wrong");
+          const errorMessage = error.response?.data?.message || "Something went wrong";
+            setError(errorMessage);
         } finally{
             setLoading(false);
         }

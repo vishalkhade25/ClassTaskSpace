@@ -16,11 +16,14 @@ const TeacherDashboard = () => {
     try {
       const response = await axiosInstance.get("/class/teacher");
       setClasses(response.data.classes);
-      if(classes.length === 0){
+      if(response.data.classes.length === 0){
         setEmpty(true);
+      }else{
+        setEmpty(false);
       }
     } catch (error) {
-      setError(error.response?.data?.message || "Something went wrong");
+      const errorMessage = error.response?.data?.message || "Something Went Wrong";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -62,7 +65,7 @@ const TeacherDashboard = () => {
         )}
 
         <div className="grid sm:grid-cols-2 gap-4">
-          { !empty && !loading && classes.length > 0 &&
+          { !empty && !loading &&classes.length > 0 &&
             classes.map((cls)=>(
               <ClassCard key={cls._id} classData={cls} onClick={()=>navigate(`/teacher/class/${cls._id}`)}/>
             ))
