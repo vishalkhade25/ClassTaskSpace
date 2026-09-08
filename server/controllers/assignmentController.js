@@ -9,7 +9,7 @@ const createAssignment = async (req, res) => {
         if(!title || !deadline || !req.file ){
             return res.status(400).json({success : false, message : "Please enter all fields"});
         };
-        const pdfUrl = req.file.path;
+        const pdfUrl =req.file.path;
         const classData = await classModel.findById(classId).populate("students", "name email");
         if(!classData){
             return res.status(404).json({ success: false, message: "Class not found" });

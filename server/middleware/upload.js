@@ -4,10 +4,13 @@ import multer from "multer";
 
 const storage = new CloudinaryStorage({
     cloudinary : cloudinary,
-    params:{
-        folder : "assignments",
-        resource_type : "raw",
-        allowed_formats : ["pdf"],
+    params: async (req, file) => {
+        return {
+            folder : "assignments",
+            resource_type : "raw",
+            public_id: `${Date.now()}-${file.originalname}`,
+            allowed_formats : ["pdf"],
+        };
     }
 });
 

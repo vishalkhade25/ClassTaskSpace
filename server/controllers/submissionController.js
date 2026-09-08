@@ -10,7 +10,7 @@ const submitAssignment = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ success: false, message: "Please attach a PDF" });
         }
-        const pdfUrl = req.file.path;
+        const pdfUrl =req.file.path;
         const assignmentData = await assignmentModel.findById(assignmentId).populate("teacher", "name email");
         if(!assignmentData){
             return res.status(404).json({ success: false, message : "No assignment foud" });
@@ -48,7 +48,7 @@ const getSubmissions = async (req, res) => {
         }
         const submissions = await submissionModel.find({assignment : assignmentId}).populate("student","name email");
         if(submissions.length === 0){
-            return res.status(200).json({ success: true,message:"Currently submission list is empty" });
+            return res.status(200).json({ success: true,message:"Currently submission list is empty", submissions, notSubmitted : [] });
         }
         const classData = await classModel.findById(assignmentData.class).populate("students","name  email");
         if(!classData){
@@ -132,4 +132,17 @@ const exportSubmissionsCSV = async (req, res) => {
     }
 }
 
-export { submitAssignment, getSubmissions, gradeSubmission, exportSubmissionsCSV };
+const getMySubmissions = async (req, res) => {
+    try {
+        const { assignmentId } = req.params;
+        const mySubmissions = await submissionModel.findOne({assignment : assignmentId, student : req.user.userId});
+        if(!mySubmissions) {
+            return res.status(200).json({success:true, message:"You have not submitted any assignment yet",mySubmissions});
+        }
+        return res.status(200).json({success : true, message: "Submissions fetched successfully", mySubmissions});
+    } catch (error) {
+        return res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    }
+}
+
+export { submitAssignment, getSubmissions, gradeSubmission, exportSubmissionsCSV, getMySubmissions };

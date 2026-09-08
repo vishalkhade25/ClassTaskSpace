@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axiosInstance from "../../api/axiosInstance";
 import { useNavigate, useParams } from "react-router-dom"
+import { toDownloadUrl } from "../../utils/cloudinary";
 
 const CreateAssignment = () => {
   const [title, setTitle] = useState("");
@@ -84,7 +85,10 @@ const CreateAssignment = () => {
               type="file"
               accept="application/pdf"
               onChange={(e) => setPdfFile(e.target.files[0])}
-              className="w-full text-sm text-gray-600"
+              className="w-full text-sm text-gray-700 border border-gray-300 rounded-lg cursor-pointer bg-white
+             file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0
+             file:text-sm file:font-medium file:bg-blue-50 file:text-blue-600
+             hover:file:bg-blue-100"
             />
           </div>
 
