@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import RootRedirect from "./pages/common/RootRedirect";
 import Login from "./pages/common/Login";
 import Register from "./pages/common/Register";
 import VerifyOtp from "./pages/common/VerifyOtp";
@@ -20,6 +21,7 @@ function App() {
     <>
     <Navbar/>
     <Routes>
+      <Route path="/" element={<RootRedirect/>}/>
       <Route path="/login" element={<Login/>}/>
       <Route path="/register" element={<Register/>}/>
       <Route path="/verify-otp" element={<VerifyOtp/>}/>

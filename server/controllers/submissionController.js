@@ -48,7 +48,7 @@ const getSubmissions = async (req, res) => {
         }
         const submissions = await submissionModel.find({assignment : assignmentId}).populate("student","name email");
         if(submissions.length === 0){
-            return res.status(200).json({ success: true,message:"Currently submission list is empty", submissions, notSubmitted : [] });
+            return res.status(200).json({ success: true,message:"Currently submission list is empty", submissions, notSubmitted : [], assignment : assignmentData });
         }
         const classData = await classModel.findById(assignmentData.class).populate("students","name  email");
         if(!classData){
@@ -56,7 +56,7 @@ const getSubmissions = async (req, res) => {
         }
         const submittedStudentIds = submissions.map((sub)=> sub.student._id.toString());
         const notSubmitted = classData.students.filter((student)=> !submittedStudentIds.includes(student._id.toString()));
-        return res.status(200).json({ success:true, message: "List fetched", submissions, notSubmitted });
+        return res.status(200).json({ success:true, message: "List fetched", submissions, notSubmitted, assignment : assignmentData });
     } catch (error) {
         return res
             .status(500)
@@ -70,6 +70,9 @@ const gradeSubmission = async (req, res) => {
         const { marks } = req.body;
         if(marks === undefined || marks === null){
             return res.status(400).json({ success:false, message:"Please enter the marks" });
+        }
+        if(marks > 10){
+            return res.status(400).json({ success:false, message:"Please enter valid marks (0-10)" });
         }
         const submissionData = await submissionModel.findById(submissionId).populate("student","name email");
         if(!submissionData){

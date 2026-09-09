@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axiosInstance from "../../api/axiosInstance";
 import { toDownloadUrl } from "../../utils/cloudinary";
+import SubmissionRow from "../../components/SubmissionRow";
 
 const AssignmentDetailTeacher = () => {
   const { assignmentId } = useParams();
@@ -9,6 +10,7 @@ const AssignmentDetailTeacher = () => {
   const [submissions, setSubmissions] = useState([]);
   const [notSubmitted, setNotSubmitted] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const fetchData = async () => {
@@ -27,6 +29,36 @@ const AssignmentDetailTeacher = () => {
     }
   };
 
+  const handleGrade = async (submissionId, marks) => {
+    setSubmitting(true);
+    setError("");
+    try {
+      await axiosInstance.patch(`/submission/${submissionId}/grade`, { marks });
+      await fetchData();
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to save grade";
+      alert(errorMessage);
+    } finally {
+      setSubmitting(false); 
+    }
+  }
+
+  const handleExportCSV = async () => {
+    try {
+      const response = await axiosInstance.get(`/submission/${assignmentId}/export-csv`,{
+        responseType : "blob"
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", "submissions.csv");
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      alert("Failed to export CSV");
+    }
+  }
   useEffect(() => {
     fetchData();
   }, [assignmentId]);
@@ -61,6 +93,12 @@ const AssignmentDetailTeacher = () => {
             >
               Download Assignment PDF
             </a>
+            <button
+                onClick={handleExportCSV}
+                className="ml-4 text-sm text-blue-600 font-medium hover:underline"
+            >
+                Export CSV
+            </button>
           </div>
         )}
 
@@ -88,29 +126,9 @@ const AssignmentDetailTeacher = () => {
             Submissions ({submissions.length})
           </h2>
           <div className="space-y-3">
-            {submissions.map((sub) => (
-              <div key={sub._id} className="border border-gray-100 rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium text-gray-800">{sub.student.name}</p>
-                    <p className="text-xs text-gray-500">{sub.student.email}</p>
-                  </div>
-                  {sub.isLate && (
-                    <span className="text-xs text-red-500 font-medium">Late</span>
-                  )}
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Submitted: {new Date(sub.submittedAt).toLocaleString()}
-                </p>
-                <a
-                  href={toDownloadUrl(sub.pdfUrl)}
-                  download={`${sub.student.name}-submission.pdf`}
-                  className="inline-block text-blue-600 hover:underline text-sm mt-2"
-                >
-                  View submission
-                </a>
-              </div>
-            ))}
+             {submissions.map((sub) => (
+                  <SubmissionRow key={sub._id} submission={sub} onGrade={handleGrade} />
+                ))}
           </div>
         </div>
       </div>
