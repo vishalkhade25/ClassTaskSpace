@@ -15,6 +15,7 @@ const Login = () => {
     email : "",
     password : ""
   });
+  const [isUnverified, setIsUnverified] = useState(false);
 
   const handleChange = (e) => {
     setError("");
@@ -41,6 +42,7 @@ const Login = () => {
     } catch (error) {
       const message = error.response?.data?.message || "Something went wrong";
       setError(message);
+      setIsUnverified(error.response?.status === 403);
     }finally{
       setLoading(false);
     }
@@ -69,6 +71,11 @@ const Login = () => {
     }
   }
 
+  const handleResendClick = () => {
+    sessionStorage.setItem("email", formData.email);
+    navigate("/verify-otp");
+  };
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-md p-8">
@@ -80,6 +87,15 @@ const Login = () => {
           <div className="bg-red-50 text-red-600 text-sm px-4 py-2 rounded-lg mb-4">
             {error}
           </div>
+        )}
+
+        {isUnverified && (
+            <button
+               onClick={handleResendClick}
+                className="text-sm text-blue-600 font-medium hover:underline mb-4"
+            >
+                Resend verification code
+            </button>
         )}
 
         <form className="space-y-4" onSubmit={handleSubmit}>

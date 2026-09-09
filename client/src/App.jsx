@@ -15,6 +15,7 @@ import TeacherDashboard from "./pages/teacher/TeacherDashboard";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CompleteProfile from "./pages/common/CompleteProfile";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 function App() {
 
   return (
@@ -36,6 +37,7 @@ function App() {
       <Route path="/student/class/:classId" element={<ProtectedRoute><ClassDetailStudent/></ProtectedRoute>}/>
       <Route path="/student/assignment/:assignmentId" element={<ProtectedRoute><AssignmentDetailStudent/></ProtectedRoute>}/>
     </Routes>
+    <Footer />
     </>
   )
 }

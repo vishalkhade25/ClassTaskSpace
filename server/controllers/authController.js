@@ -15,20 +15,29 @@ const register = async (req, res) =>{
             return res.status(400).json({ success: false, message: "Please enter all details" });
         }
         const existingEmail = await userModel.findOne({email});
-        if(existingEmail){
+        if(existingEmail && existingEmail.isEmailVerified){
             return res.status(400).json({ success: false, message: "User with this email already exists!" })
         }
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
-        const user = new userModel({
-            name,
-            email,
-            password : hashedPassword,
-            role,
-            authProvider : "local",
-            isEmailVerified : false
-        });
-        await user.save();
+        let user;
+        if(existingEmail){
+            existingEmail.name = name;
+            existingEmail.password = hashedPassword;
+            existingEmail.role = role;
+            user = await existingEmail.save();
+            await EmailVerificationModel.deleteMany({ user: user._id });
+        }else{
+            user = new userModel({
+                name,
+                email,
+                password: hashedPassword,
+                role,
+                authProvider: "local",
+                isEmailVerified: false
+            });
+            await user.save();
+        }
 
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
         const otpSalt = await bcrypt.genSalt(10);
@@ -45,12 +54,6 @@ const register = async (req, res) =>{
         await emailVer.save();
 
         await sendEmail(user.email,"Verify Your Email - ClassTaskSpace",`Hello,\n\nThank you for registering with ClassTaskSpace.\n\nYour email verification OTP is:\n\n${otp}\n\nThis OTP is valid for 10 minutes. Please do not share this OTP with anyone.\n\nIf you did not create an account on ClassTaskSpace, you can safely ignore this email.\n\nRegards,\nClassTaskSpace Team`)
-        // const token = jwt.sign({
-        //     userId : user._id,
-        //     name : user.name,
-        //     email : user.email,
-        //     role : user.role
-        // }, process.env.JWT_SECRET, { expiresIn : "7d" });
         return res.status(201).json({ success: true, message: "Registration successful. Please verify your email"});
     } catch (error) {
         return res

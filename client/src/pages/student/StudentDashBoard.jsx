@@ -8,6 +8,7 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [empty, setEmpty] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   const fetchClasses = async () => {
@@ -28,6 +29,11 @@ const StudentDashboard = () => {
     }
   }
 
+  const filteredClasses = classes.filter((cls) =>
+    cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    cls.subject.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(()=>{
     fetchClasses();
   },[]);
@@ -44,6 +50,14 @@ const StudentDashboard = () => {
             + Join Class
           </button>
         </div>
+        
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search classes..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
         {/* loading state */}
         {loading && (
@@ -64,9 +78,16 @@ const StudentDashboard = () => {
           </p>
         )}
 
+        {/* has classes, but search matched nothing */}
+        {!loading && !empty && filteredClasses.length === 0 && (
+          <p className="text-gray-500 text-center mt-10">
+           No classes match your search.
+          </p>
+        )}
+
         <div className="grid sm:grid-cols-2 gap-4">
-          { !empty && !loading && classes.length > 0 &&
-          classes.map((cls) => (
+          { !empty && !loading && filteredClasses.length > 0 &&
+          filteredClasses.map((cls) => (
             <ClassCard
               key={cls._id}
               classData={cls}
