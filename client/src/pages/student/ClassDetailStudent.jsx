@@ -7,6 +7,7 @@ const ClassDetailStudent = () => {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const { classId } = useParams();
   const navigate = useNavigate();
@@ -25,6 +26,10 @@ const ClassDetailStudent = () => {
     }
   }
 
+  const filterAssignments = assignments.filter((assg)=>
+    assg.title.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(()=>{
     fetchAssignments();
   },[]);
@@ -33,6 +38,13 @@ const ClassDetailStudent = () => {
     <div className="min-h-screen bg-gray-50 px-4 py-8">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-2xl font-bold text-gray-800 mb-6">Assignments</h1>
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Search Assignments..."
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
 
         {/* loading state */}
         {loading && (
@@ -47,21 +59,27 @@ const ClassDetailStudent = () => {
         )}
 
         {/* empty state */}
-        {!loading && assignments.length === 0 && (
+        {!loading && assignments.length === 0 && !searchTerm && (
           <p className="text-gray-500 text-center mt-10">
             No assignments posted yet.
           </p>
         )}
 
+        {(!loading && filterAssignments.length === 0 && searchTerm) ?
+         <>
+          <p className="text-gray-500 text-center mt-10">
+           No Assignment match your search.
+          </p>
+         </> : 
         <div className="space-y-3">
-          {assignments.map((assignment) => (
+          {filterAssignments.map((assignment) => (
             <AssignmentCard
               key={assignment._id}
               assignment={assignment}
               onClick={() => navigate(`/student/assignment/${assignment._id}`)}
             />
           ))}
-        </div>
+        </div>}
       </div>
     </div>
   );

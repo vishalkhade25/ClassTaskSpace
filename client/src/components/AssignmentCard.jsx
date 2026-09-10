@@ -1,4 +1,4 @@
-const AssignmentCard = ({ assignment, onClick }) => {
+const AssignmentCard = ({ assignment, onClick, onDelete }) => {
   return (
     <div
       onClick={onClick}
@@ -10,6 +10,18 @@ const AssignmentCard = ({ assignment, onClick }) => {
           Deadline: {new Date(assignment.deadline).toLocaleString()}
         </p>
       </div>
+      {onDelete && (
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+          className="text-red-600 font-medium px-3 py-2 rounded-lg hover:bg-red-50 transition"
+        >
+          Delete
+        </button>
+      )}
     </div>
   );
 };
