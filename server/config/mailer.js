@@ -1,33 +1,28 @@
-import nodemailer from "nodemailer";
+import { BrevoClient } from "@getbrevo/brevo";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
+const brevo = new BrevoClient({
+    apiKey: process.env.BREVO_API_KEY
 });
 
-console.log("EMAIL USER:", process.env.EMAIL_USER);
-console.log("SMTP HOST:", "smtp.gmail.com");
-console.log("SMTP PORT:", 587);
-
-transporter.verify()
-    .then(() => console.log("SMTP connection successful"))
-    .catch((error) => console.error("SMTP connection failed:", error.message));
-
 const sendEmail = async (to, subject, text) => {
-    await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to,
-        subject,
-        text
+    const result = await brevo.transactionalEmails.sendTransacEmail({
+        subject: subject,
+        textContent: text,
+        sender: {
+            name: "ClassTaskSpace",
+            email: process.env.BREVO_SENDER_EMAIL
+        },
+        to: [
+            {
+                email: to
+            }
+        ]
     });
+
+    console.log("Email sent successfully:", result);
 };
 
 export default sendEmail;
