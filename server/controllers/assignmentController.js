@@ -27,9 +27,19 @@ const createAssignment = async (req, res) => {
             teacher : req.user.userId
         })
         await assignment.save();
-        await Promise.all(
-            classData.students.map((student)=> sendEmail(`${student.email}`, `New Assignment Posted : ${title}`, `Hi ${student.name},\n\nA new assignment has been posted in your class.\n\nAssignment: ${title}\nDescription: ${description}\nDeadline: ${deadline}\n\nPlease log in to submit your work before the deadline.\n\nRegards,\n${classData.name} — Homework Portal`))
-        )
+        try {
+            await Promise.all(
+                classData.students.map((student) =>
+                    sendEmail(
+                        student.email,
+                        `New Assignment Posted : ${title}`,
+                        `Hi ${student.name},\n\nA new assignment has been posted in your class.\n\nAssignment: ${title}\nDescription: ${description}\nDeadline: ${deadline}\n\nPlease log in to submit your work before the deadline.\n\nRegards,\n${classData.name} — Homework Portal\n${classData.name} — Homework Portal`
+                    )
+                )
+            );
+        } catch (emailError) {
+            console.log("Email notification failed:", emailError.message);
+        }
         return res.status(201).json({ success: true, message: "Assignment Uploaded successfully" });
     } catch (error) {
         return res
