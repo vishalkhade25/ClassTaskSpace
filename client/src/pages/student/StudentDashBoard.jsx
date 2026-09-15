@@ -16,6 +16,7 @@ const StudentDashboard = () => {
     setError("");
     try {
       const response = await axiosInstance.get("/class/student");
+      console.log("Fetched classes:", response.data.classes);
       const fetchedClasses = response.data.classes;
       setClasses(fetchedClasses);
       if(fetchedClasses.length === 0){
