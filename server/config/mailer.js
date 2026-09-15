@@ -13,6 +13,14 @@ const transporter = nodemailer.createTransport({
     }
 });
 
+console.log("EMAIL USER:", process.env.EMAIL_USER);
+console.log("SMTP HOST:", "smtp.gmail.com");
+console.log("SMTP PORT:", 587);
+
+transporter.verify()
+    .then(() => console.log("SMTP connection successful"))
+    .catch((error) => console.error("SMTP connection failed:", error.message));
+
 const sendEmail = async (to, subject, text) => {
     await transporter.sendMail({
         from: process.env.EMAIL_USER,
